@@ -1,0 +1,121 @@
+# This workflow installs the latest version of Terraform CLI and configures the Terraform CLI configuration file
+# with an API token for Terraform Cloud (app.terraform.io). On pull request events, this workflow will run
+# `terraform init`, `terraform fmt`, and `terraform plan` (speculative plan via Terraform Cloud). On push events
+# to the "main" branch, `terraform apply` will be executed.
+#
+# Documentation for `hashicorp/setup-terraform` is located here: https://github.com/hashicorp/setup-terraform
+
+name: 'Terraform'
+
+on: 
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  # push:
+  #   branches: [ "main" ]
+  # pull_request:
+  #   branches: [ "main" ]
+  workflow_dispatch:
+  
+permissions:
+  contents: read
+
+jobs:
+  iac-scan:
+    name: 'IaC Scan'
+    runs-on: ubuntu-latest
+    env:
+      SCAN_PATH: "." # Set the relative path in the repo to scan
+      POLICY: "Default IaC policy" # Set the desired Wiz CLI policy to use
+
+  # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+    
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Refer to offical docs here: https://github.com/marketplace/actions/terrascan-iac-scanner
+    - name: Run Terrascan
+      id: terrascan
+      uses: tenable/terrascan-action@main
+      with:
+        iac_type: 'terraform' # Required IaC type (helm, k8s, kustomize, terraform)
+        iac_version: 'v14' # IaC version (helm: v3, k8s: v1, kustomize: v3, terraform: v12, v14)
+        policy_type: 'all' #Policy type (all, aws, azure, gcp, github, k8s). Default all
+        only_warn: true
+        #scm_token: ${{ secrets.ACCESS_TOKEN }}
+        #verbose: true
+        #sarif_upload: true
+        #iac_dir:
+        #policy_path:
+        #skip_rules:
+        #config_path:
+        #find_vulnerabilities:
+
+    - name: Download Wiz CLI
+      run: curl -o wizcli https://wizcli.app.wiz.io/latest/wizcli && chmod +x wizcli
+
+    - name: Authenticate to Wiz
+      run: ./wizcli auth --id "$WIZ_CLIENT_ID" --secret "$WIZ_CLIENT_SECRET"
+      env:
+        WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+        WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
+
+    - name: Run wiz CLI IaC scan
+      run: ./wizcli iac scan --path $SCAN_PATH --policy "$POLICY"
+
+    # Runs a single command using the runners shell
+    - name: Run a one-line script
+      run: echo Hello, world!
+
+    # Runs a set of commands using the runners shell
+    - name: Run a multi-line script
+      run: |
+        echo Add other actions to build,
+        echo test, and deploy your project.
+    
+  terraform:
+    name: 'Terraform'
+    runs-on: ubuntu-latest
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+    # Checkout the repository to the GitHub Actions runner
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+        # terraform_version: 1.7.3
+        terraform_wrapper: false
+
+    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+    - name: Terraform Init
+      run: terraform init
+
+    # Checks that all Terraform configuration files adhere to a canonical format
+    # - name: Terraform Format
+    #   run: terraform fmt -check
+   
+    # Generates an execution plan for Terraform
+    - name: Terraform Plan
+      run: terraform plan -input=false
+
+      # On push to "main", build or change infrastructure according to Terraform configuration files
+      # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+    - name: Terraform Apply
+      # if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
+      run: terraform apply -auto-approve -input=false
+
+    - run: echo ${{ steps.plan.outputs.stdout }}
+    - run: echo ${{ steps.plan.outputs.stderr }}
+    - run: echo ${{ steps.plan.outputs.exitcode }}
