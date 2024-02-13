@@ -47,12 +47,6 @@ jobs:
         only_warn: true
         #scm_token: ${{ secrets.ACCESS_TOKEN }}
         #verbose: true
-        #sarif_upload: true
-        #iac_dir:
-        #policy_path:
-        #skip_rules:
-        #config_path:
-        #find_vulnerabilities:
 
     - name: Download Wiz CLI
       run: curl -o wizcli https://wizcli.app.wiz.io/latest/wizcli && chmod +x wizcli
@@ -70,15 +64,8 @@ jobs:
     - name: KICS Github Action
       uses: Checkmarx/kics-github-action@v1.7.0
       with:
-        # path to file or directory to scan
         path: .
-        # file path to store result in json format
         # output_path: # optional
-        # file path to store source internal representation in JSON format
-        # payload_path: # optional
-        # path to directory with queries (default "./assets/queries")
-        # queries: # optional
-        # verbose scan
         # verbose: # optional
     
   deploy-terraform:
@@ -108,15 +95,15 @@ jobs:
       run: terraform init
 
     # Checks that all Terraform configuration files adhere to a canonical format
-    # - name: Terraform Format
-    #   run: terraform fmt -check
+    - name: Terraform Format
+      run: terraform fmt -check
    
     # Generates an execution plan for Terraform
     - name: Terraform Plan
       run: terraform plan -input=false
 
-      # On push to "main", build or change infrastructure according to Terraform configuration files
-      # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+    # On push to "main", build or change infrastructure according to Terraform configuration files
+    # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
       # if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
       run: terraform apply -auto-approve -input=false
