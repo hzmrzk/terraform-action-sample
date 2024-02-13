@@ -36,7 +36,7 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
-    # Refer to offical docs here: https://github.com/marketplace/actions/terrascan-iac-scanner
+    # Refer to Terrascan offical docs here: https://github.com/marketplace/actions/terrascan-iac-scanner
     - name: Run Terrascan
       id: terrascan
       uses: tenable/terrascan-action@main
@@ -66,18 +66,23 @@ jobs:
     - name: Run wiz CLI IaC scan
       run: ./wizcli iac scan --path $SCAN_PATH --policy "$POLICY"
 
-    # Runs a single command using the runners shell
-    - name: Run a one-line script
-      run: echo Hello, world!
-
-    # Runs a set of commands using the runners shell
-    - name: Run a multi-line script
-      run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
+    # Refer to KICS offical docs here: https://docs.kics.io/latest/integrations/
+    - name: KICS Github Action
+      uses: Checkmarx/kics-github-action@v1.7.0
+      with:
+        # path to file or directory to scan
+        path: .
+        # file path to store result in json format
+        # output_path: # optional
+        # file path to store source internal representation in JSON format
+        # payload_path: # optional
+        # path to directory with queries (default "./assets/queries")
+        # queries: # optional
+        # verbose scan
+        # verbose: # optional
     
-  terraform:
-    name: 'Terraform'
+  deploy-terraform:
+    name: 'Deploy Terraform'
     runs-on: ubuntu-latest
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
