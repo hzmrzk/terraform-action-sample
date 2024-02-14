@@ -45,18 +45,6 @@ jobs:
         # Installs a wrapper script to wrap subsequent calls to `tflint` and expose `stdout`, `stderr`, and `exitcode` outputs
         # tflint_wrapper: # optional, default is false
 
-    # Refer to Terrascan offical docs here: https://github.com/marketplace/actions/terrascan-iac-scanner
-    - name: Run Terrascan
-      id: terrascan
-      uses: tenable/terrascan-action@main
-      with:
-        iac_type: 'terraform' # Required IaC type (helm, k8s, kustomize, terraform)
-        iac_version: 'v14' # IaC version (helm: v3, k8s: v1, kustomize: v3, terraform: v12, v14)
-        policy_type: 'all' #Policy type (all, aws, azure, gcp, github, k8s). Default all
-        only_warn: true
-        #scm_token: ${{ secrets.ACCESS_TOKEN }}
-        #verbose: true
-
     - name: Download Wiz CLI
       run: curl -o wizcli https://wizcli.app.wiz.io/latest/wizcli && chmod +x wizcli
 
@@ -76,6 +64,18 @@ jobs:
         path: .
         # output_path: # optional
         # verbose: # optional
+    
+    # Refer to Terrascan offical docs here: https://github.com/marketplace/actions/terrascan-iac-scanner
+    - name: Run Terrascan
+      id: terrascan
+      uses: tenable/terrascan-action@main
+      with:
+        iac_type: 'terraform' # Required IaC type (helm, k8s, kustomize, terraform)
+        iac_version: 'v14' # IaC version (helm: v3, k8s: v1, kustomize: v3, terraform: v12, v14)
+        policy_type: 'all' #Policy type (all, aws, azure, gcp, github, k8s). Default all
+        only_warn: true
+        #scm_token: ${{ secrets.ACCESS_TOKEN }}
+        #verbose: true
     
   deploy-terraform:
     name: 'Deploy Terraform'
