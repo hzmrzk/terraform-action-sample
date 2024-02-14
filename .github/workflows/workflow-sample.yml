@@ -2,10 +2,10 @@ name: 'Terraform'
 
 on: 
   # Triggers the workflow on push or pull request events but only for the "main" branch
-  # push:
-  #   branches: [ "main" ]
-  # pull_request:
-  #   branches: [ "main" ]
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
   workflow_dispatch: # Manually trigger
   
 permissions:
@@ -109,11 +109,9 @@ jobs:
     # Generates an execution plan for Terraform
     - name: Terraform Plan
       run: terraform plan -var="virtual_machine_admin_username=${{ secrets.VM_ADMIN_USERNAME }}" -var="virtual_machine_admin_ssh_key_path=${{ secrets.VM_ADMIN_SSH_KEY_PATH }}" -var="virtual_machine_inbound_ip_exception=${{ secrets.VM_INBOUND_IP_EXCEPTION }}"
-      # run: terraform plan -input=false
 
     # On push to "main", build or change infrastructure according to Terraform configuration files
     # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
-      # if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
+      if: github.ref == 'refs/heads/"main"' && github.event_name == 'push'
       run: terraform apply -auto-approve -var="virtual_machine_admin_username=${{ secrets.VM_ADMIN_USERNAME }}" -var="virtual_machine_admin_ssh_key_path=${{ secrets.VM_ADMIN_SSH_KEY_PATH }}" -var="virtual_machine_inbound_ip_exception=${{ secrets.VM_INBOUND_IP_EXCEPTION }}"
-      # run: terraform apply -auto-approve -input=false
