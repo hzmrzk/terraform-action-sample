@@ -36,6 +36,15 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - name: Setup TFLint
+      uses: terraform-linters/setup-tflint@v4.0.0
+      with:
+        tflint_version: v4.0.0
+        # GitHub token - used when getting the latest version of tflint
+        # github_token: # optional, default is ${{ github.server_url == 'https://github.com' && github.token || '' }}
+        # Installs a wrapper script to wrap subsequent calls to `tflint` and expose `stdout`, `stderr`, and `exitcode` outputs
+        # tflint_wrapper: # optional, default is false
+
     # Refer to Terrascan offical docs here: https://github.com/marketplace/actions/terrascan-iac-scanner
     - name: Run Terrascan
       id: terrascan
