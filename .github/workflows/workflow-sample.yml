@@ -19,7 +19,7 @@ permissions:
   contents: read
 
 jobs:
-  iac-scan:
+  security-scan:
     name: 'IaC Scan'
     runs-on: ubuntu-latest
     env:
